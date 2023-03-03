@@ -1,0 +1,15 @@
+{
+  "name": "cheese-boards",
+  "version": "1.0.0",
+  "description": "A Sequelize DB for users to collect cheeses and place them on boards",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --watchAll"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MultiverseLearningProducts/cheese-boards.git"
+  },
+  "keywords": [],
+  "author": "Multiverse Learning Products"
+}
