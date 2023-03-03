@@ -1,4 +1,6 @@
 const {User, Board, Cheese, sequelize } = require('../index')
+const {UserData,BoardData,CheeseData} = require('../seedData/seedData')
+const {Op} = require('sequelize')
 
 describe('Database init & model creation; basic crud', () => {
     beforeAll(async () => {
@@ -91,7 +93,53 @@ describe('Database init & model creation; basic crud', () => {
 })
 describe('seed database for associations', () => {
 
-    // beforeAll(async () => {
+    beforeAll(async () => {
+        await sequelize.sync()
+        await User.bulkCreate(UserData).then(() => {console.log('User data seeded')},(err) => {console.error(err)})
+        await Board.bulkCreate(BoardData).then(() => {console.log('Board data seeded')},(err) => {console.error(err)})
+        let users = await User.findAll()
+        let boards = await Board.findAll()
+        for(let i = 0; i < users.length; i++){
+            await users[i].addBoard(boards[i]);
+        }
+        // await Cheese.bulkCreate(CheeseData).then(() => {console.log('Cheese data seeded')},(err) => {console.error(err)})
+        let smells = boards[0]
+        let frenchCheeses = boards[1]
+        let secret = boards[2]
+        let friendCheese = boards[3]
+        let smellChz = CheeseData.slice(0,3)
+        let frenchChz = CheeseData.slice(3)
+        for(let i = 0; i < smellChz.length; i++){
+            await smells.createCheese(smellChz[i]);
+        }
+        for(let i = 0; i < frenchChz.length; i++){
+            await frenchCheeses.createCheese(frenchChz[i])
+        }
+        await smells.save()
+        await frenchCheeses.save()
+        let cheeses = await Cheese.findAll({
+            where: {
+                id: {
+                    [Op.gte]: 4
+                }
+            }
+        })
+        await secret.addCheeses(cheeses);
+        await secret.save()
 
-    // })
+        // await Board.create({
+        //     title: "smells",
+        //     description: "These cheeses smell really good when left out in the sun for a while",
+        //     cheeses: [{
+        //         title: "my cheese",
+        //         description: "its MINE, I LICKED it.",
+        //         rating: 0,
+        //     Cheese_Board: {selfGranted: true}
+        //     }],
+        //     },
+        //     {include: Cheese}).then(() => {console.log('User data seeded')},(err) => {console.error(err)})
+    });
+    test('omg jest', async () => {
+        expect("jest you are").toBe("sosososDUMnb")
+    })
 })

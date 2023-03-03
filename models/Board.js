@@ -1,6 +1,6 @@
 const {sequelize, DataTypes} = require('./db')
 
-const Board = sequelize.define("Boards",{
+const Board = sequelize.define("board",{
     title: DataTypes.STRING,
     description: DataTypes.STRING
 },{timestamps: false});

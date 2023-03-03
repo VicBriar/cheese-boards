@@ -1,6 +1,6 @@
 const {sequelize, DataTypes} = require('./db')
 
-const Cheese = sequelize.define("Cheese", {
+const Cheese = sequelize.define("cheese", {
     type: DataTypes.STRING,
     description: DataTypes.STRING,
     rating: DataTypes.INTEGER

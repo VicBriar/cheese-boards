@@ -1,8 +1,10 @@
+
 const UserData = [
     {
         name: "Twitch",
         email: "heheh@ZaunSewerDept.gov"
     },
+    
     {
         name: "Brie_a_Gouda_Person",
         email: "softieCheese@gmail.com"
@@ -12,12 +14,12 @@ const UserData = [
         email: "Ilovepuns@yahoo.com"
     }
     
-];
+]
 
 const BoardData = [
     {
-        title: "my cheese",
-        description: "its MINE, I LICKED it."
+        title: "smells",
+        description: "These cheeses smell really good when left out in the sun for a while"
     },
     {
         title: "French Cheeses",
@@ -26,10 +28,6 @@ const BoardData = [
     {
         title: "secret board",
         description: "a private board for planning my wife's cheese themed birthday party"
-    },
-    {
-        title: "smells",
-        description: "These cheeses smell really good when left out in the sun for a while"
     },
     {
         title: "friend cheese",
@@ -89,3 +87,5 @@ const CheeseData = [
         rating: 5
     },
 ]
+
+module.exports = {UserData,BoardData,CheeseData}
