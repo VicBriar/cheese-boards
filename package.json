@@ -11,5 +11,10 @@
     "url": "git+https://github.com/MultiverseLearningProducts/cheese-boards.git"
   },
   "keywords": [],
-  "author": "Multiverse Learning Products"
+  "author": "Multiverse Learning Products",
+  "dependencies": {
+    "jest": "^29.4.3",
+    "sequelize": "^6.29.0",
+    "sqlite3": "^5.1.4"
+  }
 }
