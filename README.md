@@ -48,20 +48,20 @@ We now need to associate the models with one another according to the specificat
 
 ### Users/Boards Association
 Associate the `User` and `Board` models with a One-to-Many relationship
-- Multiple Boards can be added to a User.
-- Add test(s) to account for the association.
+X Multiple Boards can be added to a User.
+X Add test(s) to account for the association.
 
 ### Boards/Cheeses Association
 Associate the Board and Cheese models with a Many-to-Many relationship.
-- A Board can have many Cheeses
-- A Cheese can be on many Boards
-- Add test(s) to account for the association.
+x A Board can have many Cheeses
+X A Cheese can be on many Boards
+X Add test(s) to account for the association.
 
 ### Eager Loading
 Write another test(s) that verify one or more of these:
-- A board can be loaded with its cheeses
-- A user can be loaded with its boards
-- A cheese can be loaded with its board data
+x A board can be loaded with its cheeses
+x A user can be loaded with its boards
+x A cheese can be loaded with its board data
 
 ### Commit & Push
 - `git add .`, `git commit -m “somemessage”`, and `git push` so we can see your work!

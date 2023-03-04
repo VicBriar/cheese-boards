@@ -7,13 +7,13 @@ describe('Database init & model creation; basic crud', () => {
         await sequelize.sync({force: true})
     })
 
-    //creation
+    
     test('User CRUD',async () => {
         let testUser = await User.create({
             name: "cheeseLord",
             email: "TheCheeseLord@cheeseKingdom.com"
         })
-
+        //creation
         expect(testUser.name).toBe("cheeseLord")
         expect(testUser.email).toBe("TheCheeseLord@cheeseKingdom.com")
         expect(testUser.id).toBeDefined()
@@ -48,7 +48,7 @@ describe('Database init & model creation; basic crud', () => {
         testBoard.title = "Cheeses for ME"
         let id = testBoard.id
         await testBoard.save();
-        testBoard = await Board.findByPk(id);
+        testBoard = await Board.findByPk(id)
 
         expect(testBoard.title).toBe("Cheeses for ME")
 
@@ -91,32 +91,41 @@ describe('Database init & model creation; basic crud', () => {
     
     
 })
+
+//jest doesn't allow me to create variables with async methods inside define; it has to be done inside a test. Many of my tests reference variables created by other tests. These variables can't be passed between tests, tests also cannot be nested. This means to keep things dry, I had to make one BIG test for lots of behaviours. I used comments to seperate each actual 'test'
 describe('seed database for associations', () => {
 
     beforeAll(async () => {
         await sequelize.sync()
+        //create users and boards from data
         await User.bulkCreate(UserData).then(() => {console.log('User data seeded')},(err) => {console.error(err)})
         await Board.bulkCreate(BoardData).then(() => {console.log('Board data seeded')},(err) => {console.error(err)})
+        //find created users & boards
         let users = await User.findAll()
         let boards = await Board.findAll()
+       //assign users their boards
         for(let i = 0; i < users.length; i++){
-            await users[i].addBoard(boards[i]);
+            await users[i].addBoard(boards[i],{through: {selfGranted: false}});
         }
-        // await Cheese.bulkCreate(CheeseData).then(() => {console.log('Cheese data seeded')},(err) => {console.error(err)})
+        // create variables for boards 
         let smells = boards[0]
         let frenchCheeses = boards[1]
         let secret = boards[2]
-        let friendCheese = boards[3]
+        //create variables for cheeses; the first 3 are joke cheeses for the first board, the cheese after are meant to be assigned to multiple boards to test associated relationships
         let smellChz = CheeseData.slice(0,3)
-        let frenchChz = CheeseData.slice(3)
+        let yumChz = CheeseData.slice(3)
+        //assigning funny cheese to funny board
         for(let i = 0; i < smellChz.length; i++){
-            await smells.createCheese(smellChz[i]);
+            await smells.createCheese(smellChz[i],{through: {selfGranted: false}});
         }
-        for(let i = 0; i < frenchChz.length; i++){
-            await frenchCheeses.createCheese(frenchChz[i])
+        //assigning every yum cheese to frenchCheeses
+        for(let i = 0; i < yumChz.length; i++){
+            await frenchCheeses.createCheese(yumChz[i],{through: {selfGranted: false}})
         }
+        //writing my changes
         await smells.save()
         await frenchCheeses.save()
+        //getting yumChz a different way
         let cheeses = await Cheese.findAll({
             where: {
                 id: {
@@ -124,20 +133,11 @@ describe('seed database for associations', () => {
                 }
             }
         })
-        await secret.addCheeses(cheeses);
+        //adding yumChz to secret board with different method (for pracitce & testing)
+        await secret.addCheeses(cheeses,{through: {selfGranted: false}});
+        //writing changes
         await secret.save()
         await sequelize.sync()
-        // await Board.create({
-        //     title: "smells",
-        //     description: "These cheeses smell really good when left out in the sun for a while",
-        //     cheeses: [{
-        //         title: "my cheese",
-        //         description: "its MINE, I LICKED it.",
-        //         rating: 0,
-        //     Cheese_Board: {selfGranted: true}
-        //     }],
-        //     },
-        //     {include: Cheese}).then(() => {console.log('User data seeded')},(err) => {console.error(err)})
     });
 
     test('User to Board relationship & eager loading', async () => {
@@ -149,7 +149,7 @@ describe('seed database for associations', () => {
         let brieBoard = boards[3]
 
         //adding the unassigned board to twitch user
-        await twitch.addBoard(brieBoard)
+        await twitch.addBoard(brieBoard,{through: {selfGranted: false}})
         //writing changes to database
         await twitch.save()
         await brieBoard.save()
@@ -159,17 +159,94 @@ describe('seed database for associations', () => {
         //updating my instance of brieBoard
         await brieBoard.reload()
         let fk = brieBoard.UserId
+       
+//~~~~~~~~~~  a user can have many boards
         expect(twitch["boards"].length).toBe(2)
         expect(twitch.boards[0].title).toBe(brieBoard.title)
         expect(twitch.boards[0].id).toBe(brieBoard.id)
         
         //this makes sure if I reassign ownership, the board doesn't keep it's old foreign key to twitch
-        await Brie_a_Gouda_Person.addBoard(brieBoard)
+        await Brie_a_Gouda_Person.addBoard(brieBoard,{through: {selfGranted: false}})
         await brieBoard.reload()
+//~~~~~~~~~~  a board cannot have multiple users
         expect(brieBoard.UserId).not.toBe(fk)
     })
 
     test('Board to Cheese relationships & eager loading', async () => {
-        expect("not written").toBe("test")
-    })
+//TEST 0;  Board association & loading ---------------------------------------------------------------------------
+        //✨ eager loading ✨
+        let boards = await Board.findAll({include: Cheese});
+        let smells = boards[0]
+
+//~~~~~~~~~~ a board can have many cheeses
+        expect(smells.cheeses.length).toBeGreaterThan(1)
+//~~~~~~~~~~ a board can be loaded with its cheeses
+        expect(smells.cheeses[0]).toBeInstanceOf(Cheese)
+
+//TEST 1; Cheese association & loading ---------------------------------------------------------------------------
+        //making new board with lots of cheese to eager load
+        let tastee = await Board.create({
+            title: "tastee",
+            description: "the cheese i want to eat everyday",
+            cheeses: [{
+                type: "riccota",
+                description: "soft! tangy! great with dill weed!!",
+                rating: 5,
+                Cheese_Board: {selfGranted: true}
+            },
+            {
+                type: "shoe cheese",
+                description: "best with old socks",
+                rating: 5,
+                Cheese_Board: {selfGranted: true}
+            },
+            {
+                type: "very very old mayonaise",
+                description: "best with ketchup & aged fries",
+                rating: 5,
+                Cheese_Board: {selfGranted: true}
+            }
+            ],
+        }, 
+        {include: Cheese});
+        
+        let riccota = await Cheese.findOne({
+            where: {type: "riccota"},
+            include: Board
+        }) 
+        //assign riccota to another board
+        await smells.addCheese(riccota,{through: {selfGranted: false}})
+        //make sure my riccotta is matching what the database has
+        await riccota.reload()
+
+//~~~~~~~~~~ a cheese can be loaded with it's board data
+        expect(riccota.boards).toBeDefined()
+//~~~~~~~~~~ a cheese can be on many boards
+        expect(riccota.boards.length).toBeGreaterThan(1)
+
+//TEST 2; User association & loading, Board-user loading---------------------------------------------------------------------------
+        //getting twitch user with boards
+        let twitch = await User.findOne({
+            where: {name: "Twitch",
+                    id: 2},
+            include: Board
+        })
+        await twitch.addBoard(tastee)
+        await twitch.save()
+        tastee = await Board.findOne({
+            where: {title: "tastee"},
+            include: User
+        })
+        await twitch.reload()
+
+//~~~~~~~~~~ a user can be loaded with their boards
+        expect(twitch.boards).toBeDefined()
+//~~~~~~~~~~ a user can have many boards
+        expect(twitch.boards.length).toBeGreaterThan(1)        
+//~~~~~~~~~~  a board can be loaded with it's user
+        expect(tastee.User).toBeDefined()
+
+
+
+})
 })
