@@ -126,7 +126,7 @@ describe('seed database for associations', () => {
         })
         await secret.addCheeses(cheeses);
         await secret.save()
-
+        await sequelize.sync()
         // await Board.create({
         //     title: "smells",
         //     description: "These cheeses smell really good when left out in the sun for a while",
@@ -139,7 +139,37 @@ describe('seed database for associations', () => {
         //     },
         //     {include: Cheese}).then(() => {console.log('User data seeded')},(err) => {console.error(err)})
     });
-    test('omg jest', async () => {
-        expect("jest you are").toBe("sosososDUMnb")
+
+    test('User to Board relationship & eager loading', async () => {
+        //init values to use
+        let users = await User.findAll();
+        let boards = await Board.findAll();
+        let twitch = users[0]
+        let Brie_a_Gouda_Person = users[1]
+        let brieBoard = boards[3]
+
+        //adding the unassigned board to twitch user
+        await twitch.addBoard(brieBoard)
+        //writing changes to database
+        await twitch.save()
+        await brieBoard.save()
+        //updating my instance to reflect database & eagerloading
+        users = await User.findAll({include: Board})
+        twitch = users[0]
+        //updating my instance of brieBoard
+        await brieBoard.reload()
+        let fk = brieBoard.UserId
+        expect(twitch["boards"].length).toBe(2)
+        expect(twitch.boards[0].title).toBe(brieBoard.title)
+        expect(twitch.boards[0].id).toBe(brieBoard.id)
+        
+        //this makes sure if I reassign ownership, the board doesn't keep it's old foreign key to twitch
+        await Brie_a_Gouda_Person.addBoard(brieBoard)
+        await brieBoard.reload()
+        expect(brieBoard.UserId).not.toBe(fk)
+    })
+
+    test('Board to Cheese relationships & eager loading', async () => {
+        expect("not written").toBe("test")
     })
 })
